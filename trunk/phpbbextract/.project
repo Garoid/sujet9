@@ -33,11 +33,4 @@
 		<nature>org.eclipse.jem.workbench.JavaEMFNature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>pc@pilotcanessa</name>
-			<type>2</type>
-			<location>C:/Program Files/Mozilla Firefox/extensions/pc@pilotcanessa</location>
-		</link>
-	</linkedResources>
 </projectDescription>

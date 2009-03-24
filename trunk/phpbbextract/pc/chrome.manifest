@@ -1,0 +1,5 @@
+content	pc	content/
+locale	pc	en-US	locale/en-US/
+skin	pc	classic/1.0	skin/
+overlay	chrome://browser/content/browser.xul	chrome://pc/content/firefoxOverlay.xul
+style	chrome://global/content/customizeToolbar.xul	chrome://pc/skin/overlay.css

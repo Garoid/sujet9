@@ -1,0 +1,5 @@
+<!ENTITY pc.label "Your localized menuitem">
+<!ENTITY pcContext.label "Your Menuitem">
+<!ENTITY pcContext.accesskey "Y">
+<!ENTITY pcToolbar.label "Your Toolbar Button">
+<!ENTITY pcToolbar.tooltip "This is your toolbar button!">
