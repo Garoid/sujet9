@@ -1,0 +1,38 @@
+<?xml-stylesheet href="chrome://pc/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://pc/locale/pc.dtd">
+<overlay id="pc-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  
+  
+	<!--<script type="text/javascript" src="http://code.google.com/p/jqueryjs/downloads/detail?name=jquery-1.3.2.min.js"></script>-->
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"/>
+	<script>
+	
+	
+
+	$("div").live('click',function(){
+					//alert ($(document));
+					
+					
+					//var ni = content.document.getElementById('titi');
+					//alert('ni'+ni.innerHTML);
+					
+					$(".toto").css({color:'blue'});
+					$(".toto").text("salllllllllllllllllllllllllllllliuuuuuuuuuuuuuut");
+					
+					//$(this).hide('slow');
+					
+	});
+	
+	$(this).live('click',function(){
+					alert ($(this));
+					
+					
+	});
+	
+	
+	</script>
+
+	
+	
+</overlay>

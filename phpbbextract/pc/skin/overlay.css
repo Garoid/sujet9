@@ -1,0 +1,22 @@
+/* This is just an example.  You shouldn't do this. */
+#pc-hello
+{
+  color: red ! important;
+}
+#pc-toolbar-button
+{
+  list-style-image: url("chrome://pc/skin/toolbar-button.png");
+  -moz-image-region: rect(0px 24px 24px 0px);
+}
+#pc-toolbar-button:hover
+{
+  -moz-image-region: rect(24px 24px 48px  0px);
+}
+[iconsize="small"] #pc-toolbar-button
+{
+  -moz-image-region: rect( 0px 40px 16px 24px);
+}
+[iconsize="small"] #pc-toolbar-button:hover
+{
+  -moz-image-region: rect(24px 40px 40px 24px);
+}
