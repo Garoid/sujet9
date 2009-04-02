@@ -1,0 +1,29 @@
+<?xml-stylesheet href="chrome://pc/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://pc/locale/pc.dtd">
+<overlay id="pc-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  
+  
+	<!--<script type="text/javascript" src="http://code.google.com/p/jqueryjs/downloads/detail?name=jquery-1.3.2.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>-->
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"/>
+	<script language="javascript" type="text/javascript">
+	
+	$("body").live('click',function(){
+		alert($("html", gBrowser.selectedBrowser.contentWindow.document).html());
+		
+	});
+	
+	
+	
+	</script>
+
+	<!--
+		//$(gBrowser.selectedBrowser.contentWindow.document.body).find("div").append("<html:p>Hello</html:p>");
+		//$("body").find("a").text("Jimi Hendrix, Electric Ladylan");
+	$(gBrowser.selectedBrowser.contentWindow.document).find("div").append("<p>salut</p>");
+		
+
+	-->
+	
+</overlay>
