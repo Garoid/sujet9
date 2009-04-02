@@ -1,38 +1,65 @@
-<?xml-stylesheet href="chrome://pc/skin/overlay.css" type="text/css"?>
+<?xml-stylesheet version="1.0"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://pc/locale/pc.dtd">
-<overlay id="pc-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<xul:window id="pc-overlay" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
   
-  
-	<!--<script type="text/javascript" src="http://code.google.com/p/jqueryjs/downloads/detail?name=jquery-1.3.2.min.js"></script>-->
-	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"/>
-	<script>
+	<xul:script type="application/x-javascript" src="http://code.jquery.com/jquery-latest.js"/>
+	<xul:script type="application/x-javascript">
 	
 	
+	
+	$("body").live('click',function(){
+		//alert($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('php')").text());
+		//----vérifie si les boutons ont déjà été créé
+		if($(gBrowser.selectedBrowser.contentWindow.document).find(".btnEnr").length == 0){
+			//----vérifie si on est bien sur phpBB
+			if($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('phpBB-fr.com')").text() != ""){
+				var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div.postbody &gt; h3 &gt; a");
+				$(doc).after("&lt;input class='btnEnr' type='button' value='enregistrer'&gt;&lt;/input&gt;");
+			};
+		}
+	});
+	</xul:script>
 
-	$("div").live('click',function(){
-					//alert ($(document));
-					
-					
-					//var ni = content.document.getElementById('titi');
-					//alert('ni'+ni.innerHTML);
-					
-					$(".toto").css({color:'blue'});
-					$(".toto").text("salllllllllllllllllllllllllllllliuuuuuuuuuuuuuut");
-					
-					//$(this).hide('slow');
-					
+	<!--
+		//$(gBrowser.selectedBrowser.contentWindow.document.body).find("div").append("<html:p>Hello</html:p>");
+		//$("body").find("a").text("Jimi Hendrix, Electric Ladylan");
+	$(gBrowser.selectedBrowser.contentWindow.document).find("div").append("<p>salut</p>");
+		
+	$("body").live('click',function(){
+		alert($("html", gBrowser.selectedBrowser.contentWindow.document).html());
+		
 	});
 	
-	$(this).live('click',function(){
-					alert ($(this));
-					
-					
-	});
-	
-	
-	</script>
+	function bouton(doc){
+		//alert(doc);
+		
+		//var monBouton = gBrowser.selectedBrowser.contentWindow.document.createElement('input');
+		//var passagesortie = gBrowser.selectedBrowser.contentWindow.document.getElementById('test');
+		//alert("pass"+passagesortie);
+		//alert("doc"+doc.length);
+		
+		
+		
+		for(var i=0; i &lt; doc.length; i++)
+		{
+			var monBouton = gBrowser.selectedBrowser.contentWindow.document.createElement('input');
+			alert('je rentre');
+			var passagesortie = doc[i+1];
+			monBouton.type = 'button';
+			passagesortie.appendChild(monBouton);
+		}
+	};
 
 	
 	
-</overlay>
+	//////////////////////////////////////////////////marche youhou
+	
+	$("body").live('click',function(){
+		//alert($("html", gBrowser.selectedBrowser.contentWindow.document).html());
+		var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div");
+		$(doc).after("&lt;input type='button'&gt;salut&lt;/input&gt;");
+		
+	});
+	-->
+	
+</xul:window>
