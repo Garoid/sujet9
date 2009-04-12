@@ -9,4 +9,44 @@
     <welcome-file>default.htm</welcome-file>
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
+  <servlet>
+    <description></description>
+    <display-name>extractPageServlet</display-name>
+    <servlet-name>extractPageServlet</servlet-name>
+    <servlet-class>extractPageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>extractPageServlet</servlet-name>
+    <url-pattern>/extractPageServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>extractDiscussion</display-name>
+    <servlet-name>extractDiscussion</servlet-name>
+    <servlet-class>extractDiscussion</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>extractDiscussion</servlet-name>
+    <url-pattern>/extractDiscussion</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>extractPostServlet</display-name>
+    <servlet-name>extractPostServlet</servlet-name>
+    <servlet-class>extractPostServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>extractPostServlet</servlet-name>
+    <url-pattern>/extractPostServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>extractResponsesServlet</display-name>
+    <servlet-name>extractResponsesServlet</servlet-name>
+    <servlet-class>extractResponsesServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>extractResponsesServlet</servlet-name>
+    <url-pattern>/extractResponsesServlet</url-pattern>
+  </servlet-mapping>
 </web-app>
