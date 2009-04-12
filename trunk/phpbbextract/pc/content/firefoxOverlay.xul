@@ -3,63 +3,84 @@
 <xul:window id="pc-overlay" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
   
 	<xul:script type="application/x-javascript" src="http://code.jquery.com/jquery-latest.js"/>
+	<xul:script type="application/x-javascript" src="http://ejohn.org/files/htmlparser.js"/>
 	<xul:script type="application/x-javascript">
 	
+	//enregistrer un post dans un fichier XML
+	$(".btnEnr").live('click',function(){
+		sendPageCourante();
+		$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: this.id });
+		//window.open('http://localhost:8080/projet/extractPageServlet','sauvegarder post','');
+	});
+
+	
+	//enregistrer les reponses a un message avec profondeur n
+	$(".btnEnr2").live('click',function(){
+		sendPageCourante();
+		$.post("http://localhost:8080/phpbbextract/extractDiscussion", {idPost: this.id, profondeur:2});
+	});
+
+	//envoyer par mail
+	$(".btnEnr3").live('click',function(){
+		sendPageCourante();
+		/*$.ajax({type&#58; "POST", url&#58; "http://localhost:8080/phpbbextract/extractDiscussion",success&#58; function(msg){window.open('http://localhost:8080/phpbbextract/extractDiscussion','sauvegarder discussion','');}});
+		*/
+	});
+	
+	//enregistrer la discussion
+	$(".saveDiscussion").live('click',function(){
+		var lienDiscussion = $(this).parent("dt").find("a.topictitle").attr("href");
+		sendPageCourante();
+		$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lienDiscussion, nbMsg:30});
+		var a = $(this).parents("dl").find("dd.posts");
+		alert("a"+$(a).removeData("Réponse"));
+		var b = $(a).find("dfn");
+		var c = $(this).parents("dl").find("dd.posts").not($(this).parents("dl").find("dd.posts").find("dfn"));
+		alert("c"+$(c).text());
+	});
+	
+
+			//-----------chargement du contenu html de la page dans la servlet--------------//
+	function sendPageCourante(){
+		var codeHtml = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
+		var lien = $(codeHtml).attr("href");
+		$.post("http://localhost:8080/phpbbextract/extractPageServlet", { page: lien });
+		}
+
 	
 	
 	$("body").live('click',function(){
-		//alert($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('php')").text());
-		//----vérifie si les boutons ont déjà été créé
-		if($(gBrowser.selectedBrowser.contentWindow.document).find(".btnEnr").length == 0){
 			//----vérifie si on est bien sur phpBB
 			if($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('phpBB-fr.com')").text() != ""){
-				var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div.postbody &gt; h3 &gt; a");
-				$(doc).after("&lt;input class='btnEnr' type='button' value='enregistrer'&gt;&lt;/input&gt;");
-			};
-		}
-	});
+				sendPageCourante();
+				
+				//creation des boutons sur l'index des discussions
+				if($(gBrowser.selectedBrowser.contentWindow.document).find(".saveDiscussion").length == 0){
+					var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("li.row &gt; dl &gt; dt &gt; a.topictitle");
+					for(var i=0; i &lt; doc.length; i++)
+					{
+						var post = $(doc).eq(i);
+						$(post).after("&lt;button class='saveDiscussion' &gt;SAVE&lt;/button&gt;");
+					}	
+				}
+				
+				//creation des boutons dans une discusion
+				//----vérifie si les boutons ont déjà été créé
+				if($(gBrowser.selectedBrowser.contentWindow.document).find(".btnEnr2").length == 0){
+					var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div.postbody &gt; h3 &gt; a");
+					for(var i=0; i &lt; doc.length; i++)
+					{
+						var post = $(doc).eq(i);
+						var numID = $(post).parents(".post ").attr("id");
+						$(post).after("&lt;button class='btnEnr3' id='"+ numID+"' &gt;3&lt;/button&gt;");
+						$(post).after("&lt;button class='btnEnr2' id='"+ numID+"' &gt;2&lt;/button&gt;");
+						$(post).after("&lt;button class='btnEnr' id='"+ numID+"' &gt;1&lt;/button&gt;");
+					}	
+				}
+			}
+		});
+
 	</xul:script>
 
-	<!--
-		//$(gBrowser.selectedBrowser.contentWindow.document.body).find("div").append("<html:p>Hello</html:p>");
-		//$("body").find("a").text("Jimi Hendrix, Electric Ladylan");
-	$(gBrowser.selectedBrowser.contentWindow.document).find("div").append("<p>salut</p>");
-		
-	$("body").live('click',function(){
-		alert($("html", gBrowser.selectedBrowser.contentWindow.document).html());
-		
-	});
-	
-	function bouton(doc){
-		//alert(doc);
-		
-		//var monBouton = gBrowser.selectedBrowser.contentWindow.document.createElement('input');
-		//var passagesortie = gBrowser.selectedBrowser.contentWindow.document.getElementById('test');
-		//alert("pass"+passagesortie);
-		//alert("doc"+doc.length);
-		
-		
-		
-		for(var i=0; i &lt; doc.length; i++)
-		{
-			var monBouton = gBrowser.selectedBrowser.contentWindow.document.createElement('input');
-			alert('je rentre');
-			var passagesortie = doc[i+1];
-			monBouton.type = 'button';
-			passagesortie.appendChild(monBouton);
-		}
-	};
-
-	
-	
-	//////////////////////////////////////////////////marche youhou
-	
-	$("body").live('click',function(){
-		//alert($("html", gBrowser.selectedBrowser.contentWindow.document).html());
-		var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div");
-		$(doc).after("&lt;input type='button'&gt;salut&lt;/input&gt;");
-		
-	});
-	-->
 	
 </xul:window>
