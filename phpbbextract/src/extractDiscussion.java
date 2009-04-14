@@ -62,15 +62,15 @@ public class extractDiscussion extends HttpServlet {
 			Utils.setPage(request.getParameter("page"));
 			int nbMsg = Integer.parseInt(request.getParameter("nbMsg"));
 			Utils.recupererDiscussion(nbMsg);
-			//Utils.creerXML(r);
+			Utils.creerPostsXML(Utils.getListePost());
 			
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} /*catch (XMLStreamException e) {
+		}catch (XMLStreamException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
 	

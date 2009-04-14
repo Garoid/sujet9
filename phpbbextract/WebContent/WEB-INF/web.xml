@@ -49,4 +49,14 @@
     <servlet-name>extractResponsesServlet</servlet-name>
     <url-pattern>/extractResponsesServlet</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>sendMailServlet</display-name>
+    <servlet-name>sendMailServlet</servlet-name>
+    <servlet-class>sendMailServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>sendMailServlet</servlet-name>
+    <url-pattern>/sendMailServlet</url-pattern>
+  </servlet-mapping>
 </web-app>

@@ -137,6 +137,9 @@ public class Utils {
 		NodeList ListPost = parser.parse(postIDs);
 		for(int i =0;i<ListPost.size();i++)
 		{
+			//on parse a nouveau sur les posts pour recuperer l'id
+			parser.reset();
+			ListPost = parser.parse(postIDs);
 			TagNode t =(TagNode)ListPost.elementAt(i);
 			idP = t.getAttribute("id");
 		
@@ -172,12 +175,16 @@ public class Utils {
 			//creation du post et ajout dans la liste
 			postCourant = new Post(idP,titreP,auteurP,dateP,messageP);
 			getListePost().add(postCourant);
-			
 		}
 		return result;
 		
 	}
 	
+	/**permet de parcourir la discussion par page, en recréant les url et récupère les posts de la page 
+	 * 
+	 * @param nb le nombre de messages de la discussion
+	 * @throws ParserException
+	 */
 	public static void recupererDiscussion(int nb) throws ParserException
 	{
 		//on reinitialise la liste de posts si elle est pas vide
@@ -192,7 +199,8 @@ public class Utils {
 		TagNode tg = (TagNode)post;
 		
 		//recuperation des posts de toutes les pages de la discussion
-		int nbPages = nb/15;
+
+		int nbPages = (int)Math.ceil((float)(nb+1)/15);;
 		int nbCourant =0;
 		System.out.println(nbPages);
 		String lienAdressCourante = tg.getAttribute("href");
@@ -266,10 +274,11 @@ public class Utils {
 	public static void creerPostsXML(ArrayList<Post> liste) throws XMLStreamException, IOException{
 		XMLOutputFactory out = XMLOutputFactory.newInstance();
 		FileOutputStream output = new FileOutputStream("save.xml");
-		XMLStreamWriter xmlsw = out.createXMLStreamWriter(output,"UTF-8");
+		XMLStreamWriter xmlsw = out.createXMLStreamWriter(output, "UTF-8");
 		xmlsw.writeStartDocument();
 		xmlsw.writeStartElement("POSTS");
-		for(Post p: liste){
+		for(int i=0;i<liste.size();i++){
+			Post p = liste.get(i);
 			xmlsw.writeStartElement("POST");
 			xmlsw.writeAttribute("id", p.getId());
 				xmlsw.writeStartElement("Titre");
