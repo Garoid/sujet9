@@ -88,12 +88,13 @@
 		else{
 			var nb= $(this).parent().find("option#nbP:selected").html();
 			$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: this.id, profondeur:nb});
-			//$.get("http://localhost:8080/phpbbextract/extractPostServlet")
 		}
-
-		$.post("http://localhost:8080/phpbbextract/sendMailServlet");
-		/*$.ajax({type&#58; "POST", url&#58; "http://localhost:8080/phpbbextract/extractDiscussion",success&#58; 		function(msg){window.open('http://localhost:8080/phpbbextract/extractDiscussion','sauvegarder discussion','');}});
-		*/
+		//on recupere les champs entrés par l'utilisateur
+		var from= $(this).parent().find("input.mailFrom").val();
+		var to= $(this).parent().find("input.mailTo").val();
+		var log= $(this).parent().find("input.log").val();
+		var pwd= $(this).parent().find("input.pwd").val();
+		$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
 	});
 	
 	//*************************enregistrer la discussion********************************************
@@ -140,9 +141,11 @@
 						var numID = $(post).parents(".post ").attr("id");
 						//pour l'envoi d'un mail
 						$(post).after("&lt;button class='btnEnvoi' style='display:none; &gt;Envoyer&lt;/button&gt;");
+						$(post).after("Mot de passe: &lt;input class='pwd' type='password' size='15' style='display:none;' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='log' type='text' size='15' style='display:none;' value='votre login' &gt; &lt;/input&gt; ");
 						$(post).after("&lt;select class='fichier' style='display:none;' name='listeF'&gt; &lt;option id='typeF' value='post'&gt;post&lt;option id='typeF' value='discussion'&gt;discussion&lt;option id='typeF' value='reponses'&gt;reponses&lt;/select&gt; ");
-						$(post).after("&lt;input type='text' class='mailTo' size='15' style='display:none;' value='Destinataire@fai.fr' &gt; &lt;/input&gt; ");
-						$(post).after("&lt;input type='text' class='mailFrom' size='15' style='display:none;' value='Expediteur@fai.fr' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='mailTo' type='text' style='display:none;' value='to@fai.com' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='mailFrom' type='text' style='display:none;' value='from@fai.com' &gt; &lt;/input&gt; ");
 						
 						//pour le choix de la profondeur des reponses
 						$(post).after("&lt;button class='btnOK' style='display:none; &gt;Save&lt;/button&gt;");
