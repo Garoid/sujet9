@@ -32,6 +32,8 @@ public class extractPostServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//envoi le fichier à sauvegarder grace au window.open() chez le client
+		System.out.println(this.getServletContext().getContextPath());
+		System.out.println(this.getServletContext().getServerInfo());
 		InputStream is= new FileInputStream("d:/eclipse/save.xml");
         OutputStream os = response.getOutputStream();
         response.setHeader("Content-Disposition","attachment;filename=save.xml");
