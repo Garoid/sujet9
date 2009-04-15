@@ -1,9 +1,26 @@
-import java.io.FileNotFoundException;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -20,9 +37,11 @@ import org.htmlparser.nodes.TagNode;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
-
+/**
+ * classe contenant toutes les methodes utilisées par les servlets
+ *
+ */
 public class Utils {
 	
 	private static String page;
@@ -180,42 +199,60 @@ public class Utils {
 		
 	}
 	
-	/**permet de parcourir la discussion par page, en recréant les url et récupère les posts de la page 
+	/**permet de parcourir la discussion par page, en recréant les url et récupère les posts de chaque page 
 	 * 
 	 * @param nb le nombre de messages de la discussion
+	 * @param direct false si le lien est une page de discussion, true si c'est une page d'index
 	 * @throws ParserException
 	 */
-	public static void recupererDiscussion(int nb) throws ParserException
+	public static void recupererDiscussion(int nb, String direct) throws ParserException
 	{
 		//on reinitialise la liste de posts si elle est pas vide
 		Utils.getListePost().clear();
 		
-		Parser parser = new Parser(Utils.getPage());
-		AndFilter divHref = new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("id", "page-body"));
-		AndFilter h2 = new AndFilter(new TagNameFilter("h2"), new HasParentFilter(divHref));
-		AndFilter lien = new AndFilter(new TagNameFilter("a"), new HasParentFilter(h2));
+		String lienAdressCourante = "";
+		String adresseBegin = "";
 		
-		Node post = parser.parse(lien).elementAt(0);
-		TagNode tg = (TagNode)post;
-		
-		//recuperation des posts de toutes les pages de la discussion
-
+		if(direct.equals("false"))
+		{
+			//je recupere la premiere page
+			lienAdressCourante =Utils.getPage();
+			//on trouve la position de l'extension de la page .html et du tiret si c'est pas lka première page de la discussion
+			int iFin = lienAdressCourante.lastIndexOf(".html");
+			int tiret = lienAdressCourante.lastIndexOf("-");
+			if(tiret>(iFin-5)){
+				//on garde l'adresse sans l'extension
+				adresseBegin = lienAdressCourante.substring(0,tiret);
+			}
+			else{
+				//on garde l'adresse sans l'extension
+				adresseBegin = lienAdressCourante.substring(0,iFin);
+			}
+		}	
+		else{
+			Parser parser = new Parser(Utils.getPage());
+			AndFilter divHref = new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("id", "page-body"));
+			AndFilter h2 = new AndFilter(new TagNameFilter("h2"), new HasParentFilter(divHref));
+			AndFilter lien = new AndFilter(new TagNameFilter("a"), new HasParentFilter(h2));
+			
+			Node post = parser.parse(lien).elementAt(0);
+			TagNode tg = (TagNode)post;
+			
+			//recuperation des posts de toutes les pages de la discussion
+			lienAdressCourante = tg.getAttribute("href");
+			Utils.setPage(lienAdressCourante);
+			//on trouve la position de l'extension de la page .html 
+			int iFin = lienAdressCourante.lastIndexOf(".html");
+			//on garde l'adresse sans l'extension
+			adresseBegin = lienAdressCourante.substring(0,iFin);
+		}
+		//calcul du nombre de pages
 		int nbPages = (int)Math.ceil((float)(nb+1)/15);;
 		int nbCourant =0;
-		System.out.println(nbPages);
-		String lienAdressCourante = tg.getAttribute("href");
-		
+			
 		//recuperation premiere page
-		System.out.println(lienAdressCourante);
-		Utils.setPage(lienAdressCourante);
 		Utils.recupererPosts();
-		
-		//creations des adresses des autres pages
-		//on trouve la position de l'extension de la page .html 
-		int iFin = lienAdressCourante.lastIndexOf(".html");
-		//on garde l'adresse sans l'extension
-		String adresseBegin = lienAdressCourante.substring(0,iFin);
-		System.out.println(adresseBegin);
+	
 		//pour chaque page, on construit l'url et on recupere les posts de la page
 		String adresseCheck ="";
 		for(int z =0;z<nbPages-1;z++)
@@ -227,9 +264,6 @@ public class Utils {
 			Utils.recupererPosts();
 		}
 	}
-	
-	
-
 	
 	/**
 	 * creer le fichier XML contenant le post à envoyer au client
@@ -304,5 +338,66 @@ public class Utils {
 		
 	}
 	
+	/**
+	 * methode qui permet d'envoyer un mail contenant le fichierjoint via le protocole SMTP de gmail
+	 * @param from l'expediteur
+	 * @param to le destinataire
+	 * @param subject le sujet du mail
+	 * @param message le message contenu du mail
+	 * @param login le login de l'expediteur
+	 * @param password le mot de passe de l'expediteur
+	 */
+ 	public static void envoyerMailSMTP(String from,String to,String subject,String message,String login,String password) {   
+    	try {
+    		Properties props = new Properties();
+    		props.setProperty("mail.host", "smtp.gmail.com");
+    		props.setProperty("mail.smtp.port", "587");
+    		props.setProperty("mail.smtp.auth", "true");
+    		props.setProperty("mail.smtp.starttls.enable", "true");
+    		String filename = "d:/eclipse/save.xml";
+    		
+    		Authenticator auth = new SMTPAuthenticator(login, password);
+    		Session session = Session.getInstance(props, auth);
+    		MimeMessage msg = new MimeMessage(session);
+    		
+    		// Create the message part
+    		Multipart mp = new MimeMultipart();         		
+    		msg.setText(message);
+    		msg.setSubject(subject);
+    		msg.setFrom(new InternetAddress(from));
+    		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+    		msg.setContent(mp);
+    		MimeBodyPart mbp2 = new MimeBodyPart();			
+    		DataSource ds = new FileDataSource(filename);
+     		mbp2.setDataHandler(new DataHandler(ds));		   
+     		mbp2.setFileName("save.xml");			   
+	     	mp.addBodyPart(mbp2);
+    		Transport.send(msg);
+
+    	} catch (AuthenticationFailedException ex) {
+    		ex.printStackTrace();
+    	} catch (AddressException ex) {
+    		ex.printStackTrace();
+    	} catch (MessagingException ex) {
+    		ex.printStackTrace();
+    	}
+ 	}
+        
+      /**
+       * classe interne pour l'autentification au SMTP
+       *
+       */
+    private static class SMTPAuthenticator extends Authenticator {
+
+        private PasswordAuthentication authentication;
+
+        public SMTPAuthenticator(String login, String password) {
+            authentication = new PasswordAuthentication(login, password);
+        }
+
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return authentication;
+        }
+    }
 	
 }
