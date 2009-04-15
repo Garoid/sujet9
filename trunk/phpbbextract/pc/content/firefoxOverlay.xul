@@ -20,12 +20,14 @@
 		
 		//on cache les autres options si elles sont ouvertes
 		var div = $(this).parent().find("input");
+		var lab = $(this).parent().find("label");
 		var btn0 = $(this).parent().find("button.btnEnvoi");
 		var option0 = $(this).parent().find("select.fichier");
 		if ($(option0).is(":visible")) {
 			$(option0).hide();
 			$(btn0).hide();
 			$(div).hide();
+			$(lab).hide();
 		}
 		//on affiche
 		if ($(option).is(":hidden")) {
@@ -47,6 +49,7 @@
 	//************************************affichage des options pour l'envoi par mail
 	$(".btnEnr3").live('click',function(){
 		var div = $(this).parent().find("input");
+		var lab = $(this).parent().find("label");
 		var btn = $(this).parent().find("button.btnEnvoi");
 		var option = $(this).parent().find("select.fichier");
 		
@@ -61,40 +64,50 @@
 		if ($(div).is(":hidden")) {
 			$(div).show();
 			$(btn).show();
+			$(lab).show();
 			$(option).show();
 		} else {
 			$(div).hide();
 			$(btn).hide();
+			$(lab).show();
 			$(option).hide();
 		}
 	});
 	//***********************************envoyer par mail*********************************************
 	$(".btnEnvoi").live('click',function(){
-		//sendPageCourante();
-		//on recupere les données 
-		var typeFichier= $(this).parent().find("option#typeF:selected").html();
-		var idPost = $(this).parents(".post ").attr("id");
-		if(typeFichier == "post"){
-			$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: idPost });
-		}
-		else if(typeFichier == "discussion"){
-			var urlPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
-			var nbMsg = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination");
-			var lien = $(urlPage).attr("href");
-			alert(lien);
-			alert(nbMsg);
-			$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lien, nbMsg:nbMsg});
-		}
-		else{
-			var nb= $(this).parent().find("option#nbP:selected").html();
-			$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: this.id, profondeur:nb});
-		}
-		//on recupere les champs entrés par l'utilisateur
+		//on recupere les données de l'utilisateur
+		var typeFichier= $(this).parent().find("option#typeF:selected").html();	
 		var from= $(this).parent().find("input.mailFrom").val();
 		var to= $(this).parent().find("input.mailTo").val();
 		var log= $(this).parent().find("input.log").val();
 		var pwd= $(this).parent().find("input.pwd").val();
-		$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+		var idPost = $(this).parents(".post ").attr("id");
+		
+		if(typeFichier == "post"){
+			$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: idPost },function(result){
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+			}
+			);
+		}
+		else if(typeFichier == "discussion"){
+			var urlPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
+			var nbMsg = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination").text();
+			var v = nbMsg.substring(0, nbMsg.indexOf(" m"));
+			var nbrep = v.replace(/^\s+/, "").replace(/\s+$/, "");
+			var lien = $(urlPage).attr("href");
+			$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lien, nbMsg:nbrep,direct:false},function(result){
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+			});
+		}
+		else{
+			var nb= $(this).parent().find("option#nbP:selected").html();
+			$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: this.id, profondeur:nb},function(result){
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+			});
+		}
+
+
+		
 	});
 	
 	//*************************enregistrer la discussion********************************************
@@ -102,7 +115,7 @@
 		var lienDiscussion = $(this).parent("dt").find("a.topictitle").attr("href");
 		var textnbrep = $(this).parents("dl").find("dd.posts").text();
 		var nbrep = textnbrep.substring(0, textnbrep.indexOf(" R"));
-		$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lienDiscussion, nbMsg:nbrep}, function(result){
+		$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lienDiscussion, nbMsg:nbrep,direct:true}, function(result){
 			window.open('http://localhost:8080/phpbbextract/extractPageServlet','sauvegarder discussion','');
 		});
 	});
@@ -141,11 +154,11 @@
 						var numID = $(post).parents(".post ").attr("id");
 						//pour l'envoi d'un mail
 						$(post).after("&lt;button class='btnEnvoi' style='display:none; &gt;Envoyer&lt;/button&gt;");
-						$(post).after("Mot de passe: &lt;input class='pwd' type='password' size='15' style='display:none;' &gt; &lt;/input&gt; ");
-						$(post).after("&lt;input class='log' type='text' size='15' style='display:none;' value='votre login' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;label style='display:none;'&gt;Password:&lt;/label&gt; &lt;input class='pwd' type='password' size='8' style='display:none;' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='log' type='text' size='8' style='display:none;' value='login' &gt; &lt;/input&gt; ");
 						$(post).after("&lt;select class='fichier' style='display:none;' name='listeF'&gt; &lt;option id='typeF' value='post'&gt;post&lt;option id='typeF' value='discussion'&gt;discussion&lt;option id='typeF' value='reponses'&gt;reponses&lt;/select&gt; ");
-						$(post).after("&lt;input class='mailTo' type='text' style='display:none;' value='to@fai.com' &gt; &lt;/input&gt; ");
-						$(post).after("&lt;input class='mailFrom' type='text' style='display:none;' value='from@fai.com' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='mailTo' type='text' size='15' style='display:none;' value='to@fai.com' &gt; &lt;/input&gt; ");
+						$(post).after("&lt;input class='mailFrom' type='text' size='15' style='display:none;' value='from@fai.com' &gt; &lt;/input&gt; ");
 						
 						//pour le choix de la profondeur des reponses
 						$(post).after("&lt;button class='btnOK' style='display:none; &gt;Save&lt;/button&gt;");
