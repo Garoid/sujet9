@@ -347,24 +347,24 @@ public class Utils {
 	 * @param login le login de l'expediteur
 	 * @param password le mot de passe de l'expediteur
 	 */
- 	public static void envoyerMailSMTP(String from,String to,String subject,String message,String login,String password) {   
+ 	public static void envoyerMailSMTP(String to) {   
     	try {
     		Properties props = new Properties();
     		props.setProperty("mail.host", "smtp.gmail.com");
     		props.setProperty("mail.smtp.port", "587");
     		props.setProperty("mail.smtp.auth", "true");
     		props.setProperty("mail.smtp.starttls.enable", "true");
-    		String filename = "d:/eclipse/save.xml";
+    		String filename = "c:/Data/eclipse2/save.xml";
     		
-    		Authenticator auth = new SMTPAuthenticator(login, password);
+    		Authenticator auth = new SMTPAuthenticator("phpbbsave", "phpBBadmin");
     		Session session = Session.getInstance(props, auth);
     		MimeMessage msg = new MimeMessage(session);
     		
     		// Create the message part
     		Multipart mp = new MimeMultipart();         		
-    		msg.setText(message);
-    		msg.setSubject(subject);
-    		msg.setFrom(new InternetAddress(from));
+    		msg.setText("voici votre sauvegarde");
+    		msg.setSubject("sauvegarde phpBB");
+    		msg.setFrom(new InternetAddress("phpbbsave@gmail.com"));
     		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
     		msg.setContent(mp);
     		MimeBodyPart mbp2 = new MimeBodyPart();			
