@@ -34,14 +34,9 @@ public class sendMailServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-        String from = request.getParameter("from");
     	String to = request.getParameter("to");
-    	String subject = request.getParameter("subject");
-    	String message = request.getParameter("message");
-    	String login = request.getParameter("login");
-    	String password = request.getParameter("password");
-    	System.out.println(from+ to+subject+message+login+password);
-		Utils.envoyerMailSMTP(from, to,subject,message,login,password);
+    	System.out.println(to);
+		Utils.envoyerMailSMTP(to);
 
 	}
 	
