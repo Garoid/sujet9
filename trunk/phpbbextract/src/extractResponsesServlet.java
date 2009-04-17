@@ -16,6 +16,7 @@ import org.htmlparser.filters.HasAttributeFilter;
 import org.htmlparser.filters.HasParentFilter;
 import org.htmlparser.filters.NotFilter;
 import org.htmlparser.filters.TagNameFilter;
+import org.htmlparser.nodes.TagNode;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
@@ -120,62 +121,53 @@ public class extractResponsesServlet extends HttpServlet {
 	
 	public void getCiteRecursive(int nb, AndFilter filtreParent, Parser parser, String auteurRecherche, String msgRecherche) throws ParserException {
 		AndFilter divcite = new AndFilter(new TagNameFilter("div"), new HasParentFilter(filtreParent));
-		
 		NodeList ListPost = parser.parse(divcite);
 		
-		System.out.println("taille : "+ListPost.size());
-		//System.out.println("nb : "+nb);
 		for(int i =0;i<ListPost.size();i++)
 		{
-			//System.out.println(nb+"--"+i+"!!!!!"+ListPost.elementAt(i).toHtml());
 			String blocContent = ListPost.elementAt(i).toHtml();
-			//blocContent.substring(blocContent.indexOf("<blockquote"), blocContent.indexOf("</blockquote"))
+			//System.out.println("parent"+ListPost.elementAt(i).getParent().getParent().getParent().getParent());
+			
+			TagNode parent = (TagNode)ListPost.elementAt(i).getParent().getParent().getParent().getParent();
+			//System.out.println("parent : "+parent);
+			System.out.println("id : "+parent.getAttribute("id"));
 			if(blocContent.contains("<blockquote")){
-				String debBlocContent = blocContent.substring(0, blocContent.indexOf("<blockquote"));
-				//System.out.println("debbbbbbbbbbbbbbb"+debBlocContent);
-				String finBlocContent = blocContent;
-				/*while(finBlocContent.contains("<blockquote")){
-					finBlocContent = finBlocContent.substring(finBlocContent.lastIndexOf("<blockquote"),finBlocContent.length());
-					System.out.println("1111"+finBlocContent);
-				}*/
-				while(finBlocContent.contains("</blockquote")){
-					finBlocContent = finBlocContent.substring(finBlocContent.lastIndexOf("</blockquote>")+13,finBlocContent.length());
-					//System.out.println("1111"+finBlocContent);
+				
+				while(blocContent.contains("</blockquote")){
+					blocContent = blocContent.substring(blocContent.lastIndexOf("</blockquote>")+13,blocContent.length());
 				}
-				blocContent = debBlocContent+ " "+ finBlocContent;
-				//System.out.println("bloccccccccccccccc : "+blocContent);
-				//String finBlocContent = blocContent.substring(blocContent.indexOf("<blockquote",), blocContent.length());
-				System.out.println(blocContent);
-				verifMsg(blocContent, auteurRecherche, msgRecherche);
+			}else{
+				//on supprime l'auteur "a écrit :"
+				if(blocContent.contains("crit:")){
+					blocContent = blocContent.substring(blocContent.indexOf(":")+1, blocContent.length());
+				}
 			}
+			verifMsg(blocContent, auteurRecherche, msgRecherche);
 		}
 		nb = nb-1;
 		if (nb>0) {
-			System.out.println("nb la ou on est (recursif): "+ nb);
+			//System.out.println("nb la ou on est (recursif): "+ nb);
 			parser.reset();
 			getCiteRecursive(nb, divcite, parser, auteurRecherche, msgRecherche);
 		}
 	}
 	
 	public void verifMsg(String contenuMsg,String auteurRecherche, String msgRecherche  ) {
-		StringBuffer sb = new StringBuffer(contenuMsg);
-		System.out.println("sb :::::::::dans verif::::"+sb.toString());
-		//System.out.println("1::::::::::::::::"+contenuMsg.contains("<"));
-
-		//System.out.println("**************************************"+sb.toString());
-		while(contenuMsg.contains("<")||contenuMsg.contains(">")){
-			//System.out.println("je pass:::::::::::::::::::::::::");
-			sb = sb.delete(contenuMsg.indexOf("<"), contenuMsg.indexOf(">")+1);
-		}
-		contenuMsg = sb.toString();
 		
-		System.out.println("contenuMsg"+contenuMsg);
-		System.out.println(msgRecherche);
-		if (msgRecherche.contains(contenuMsg)) {
-			System.out.println(auteurRecherche + "okkkkkkkkk");
-		} else {
-			System.out.println("kooooooooo");
-		}
+		contenuMsg = contenuMsg.replaceAll("<[^>]*>", "");
 
+		
+		if (msgRecherche.contains(contenuMsg) && contenuMsg.length()>2) {
+			System.out.println("--------------------------------------------");
+			System.out.println("message à tester : "+ contenuMsg);
+			System.out.println("message test :"+msgRecherche);
+			System.out.println("auteur test :"+auteurRecherche);
+			
+			System.out.println("okkkkkkkkk");
+			System.out.println("--------------------------------------------");
+		} else {
+			//System.out.println("kooooooooo");
+		}
+		
 	}
 }
