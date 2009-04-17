@@ -43,7 +43,11 @@
 	$(".btnOK").live('click',function(){
 		//on recupere la profondeur
 		var nb= $(this).parent().find("option#nbP:selected").html();
-		$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: this.id, profondeur:nb});
+		var idPost = $(this).parents(".post ").attr("id");
+		//on recupere les numeros de page
+		var pageCourante = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:first").text();
+        var lastPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:last").text();
+		$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: idPost, profondeur:nb,pageCourante:pageCourante,lastPage:lastPage});
 	});
 	
 	//************************************affichage des options pour l'envoi par mail
@@ -77,15 +81,12 @@
 	$(".btnEnvoi").live('click',function(){
 		//on recupere les données de l'utilisateur
 		var typeFichier= $(this).parent().find("option#typeF:selected").html();	
-		var from= $(this).parent().find("input.mailFrom").val();
 		var to= $(this).parent().find("input.mailTo").val();
-		var log= $(this).parent().find("input.log").val();
-		var pwd= $(this).parent().find("input.pwd").val();
 		var idPost = $(this).parents(".post ").attr("id");
 		
 		if(typeFichier == "post"){
 			$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: idPost },function(result){
-				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to});
 			}
 			);
 		}
@@ -96,13 +97,13 @@
 			var nbrep = v.replace(/^\s+/, "").replace(/\s+$/, "");
 			var lien = $(urlPage).attr("href");
 			$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lien, nbMsg:nbrep,direct:false},function(result){
-				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to});
 			});
 		}
 		else{
 			var nb= $(this).parent().find("option#nbP:selected").html();
 			$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: this.id, profondeur:nb},function(result){
-				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{from:from, to:to, subject:"enregistrement forum phpBB", message:"voici le fichier de sauvegarde d'un contenu du forum", login:log, password:pwd });
+				$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to });
 			});
 		}
 
@@ -126,10 +127,15 @@
 		var codeHtml = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
 		var lien = $(codeHtml).attr("href");
 		$.post("http://localhost:8080/phpbbextract/extractPageServlet", { page: lien });
+		/*$(this).after("&lt;img class='waitCircle' src='http://canoe-kayak.eu/G/waiting.gif' height='23' width='23' &gt;&lt;/img&gt;");
+               var waiting = $(this).parent().find('.waitCircle');
+               
+               //a mettre dans la réponse du post!!
+               waiting.remove();*/
 		}
 
 	
-	$("body").live('click',function(){
+	$("body").live('dblclick',function(){
 			//----vérifie si on est bien sur phpBB
 			if($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('phpBB-fr.com')").text() != ""){
 				sendPageCourante();
@@ -154,11 +160,8 @@
 						var numID = $(post).parents(".post ").attr("id");
 						//pour l'envoi d'un mail
 						$(post).after("&lt;button class='btnEnvoi' style='display:none; &gt;Envoyer&lt;/button&gt;");
-						$(post).after("&lt;label style='display:none;'&gt;Password:&lt;/label&gt; &lt;input class='pwd' type='password' size='8' style='display:none;' &gt; &lt;/input&gt; ");
-						$(post).after("&lt;input class='log' type='text' size='8' style='display:none;' value='login' &gt; &lt;/input&gt; ");
 						$(post).after("&lt;select class='fichier' style='display:none;' name='listeF'&gt; &lt;option id='typeF' value='post'&gt;post&lt;option id='typeF' value='discussion'&gt;discussion&lt;option id='typeF' value='reponses'&gt;reponses&lt;/select&gt; ");
 						$(post).after("&lt;input class='mailTo' type='text' size='15' style='display:none;' value='to@fai.com' &gt; &lt;/input&gt; ");
-						$(post).after("&lt;input class='mailFrom' type='text' size='15' style='display:none;' value='from@fai.com' &gt; &lt;/input&gt; ");
 						
 						//pour le choix de la profondeur des reponses
 						$(post).after("&lt;button class='btnOK' style='display:none; &gt;Save&lt;/button&gt;");
