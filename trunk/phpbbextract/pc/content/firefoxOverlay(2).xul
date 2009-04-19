@@ -1,0 +1,216 @@
+<?xml-stylesheet version="1.0"?>
+
+<xul:window id="pc-overlay" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
+  
+	<xul:script type="application/x-javascript" src="http://code.jquery.com/jquery-latest.js"/>
+	<xul:script type="application/x-javascript">
+	
+	//*******************enregistrer un post dans un fichier XML*****************************
+	$(".btnEnr").live('click',function(){
+		$(this).after("&lt;img class='waitCircle' src='http://canoe-kayak.eu/G/waiting.gif' height='23' width='23' &gt;&lt;/img&gt;");
+        var waiting = $(this).parent().find('.waitCircle');
+     
+		$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: this.id } , function(result){
+			waiting.remove();
+			window.open('http://localhost:8080/phpbbextract/extractPageServlet','sauvegarder post','');
+		});
+	});
+
+	
+	//***********************affichage des options pour l'enregistrement des reponses
+	$(".btnEnr2").live('click',function(){
+		var option = $(this).parent().find("select.prof");
+		var btn = $(this).parent().find("button.btnOK");
+		
+		//on cache les autres options si elles sont ouvertes
+		var div = $(this).parent().find("input");
+		var lab = $(this).parent().find("label");
+		var btn0 = $(this).parent().find("button.btnEnvoi");
+		var option0 = $(this).parent().find("select.fichier");
+		if ($(option0).is(":visible")) {
+			$(option0).hide();
+			$(btn0).hide();
+			$(div).hide();
+			$(lab).hide();
+		}
+		//on affiche
+		if ($(option).is(":hidden")) {
+			$(option).show();
+			$(btn).show();
+		} else {
+			$(option).hide();
+			$(btn).hide();
+		}
+		
+	});
+	//************************enregistrer les reponses a un message avec profondeur n******************************
+	$(".btnOK").live('click',function(){
+		$(this).after("&lt;img class='waitCircle' src='http://canoe-kayak.eu/G/waiting.gif' height='23' width='23' &gt;&lt;/img&gt;");
+        var waiting = $(this).parent().find('.waitCircle');
+     
+		//on recupere la profondeur
+		var nb= $(this).parent().find("option#nbP:selected").html();
+		var idPost = $(this).parents(".post ").attr("id");
+		//on recupere les numeros de page
+		var pageCourante = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:first").text();
+        var lastPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:last").text();
+		$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: idPost, profondeur:nb,pageCourante:pageCourante,lastPage:lastPage},
+			function(result){
+				waiting.remove();
+				window.open('http://localhost:8080/phpbbextract/extractPageServlet','sauvegarder discussion','')});
+	});
+	
+	//************************************affichage des options pour l'envoi par mail
+	$(".btnEnr3").live('click',function(){
+		var div = $(this).parent().find("input");
+		var lab = $(this).parent().find("label");
+		var btn = $(this).parent().find("button.btnEnvoi");
+		var option = $(this).parent().find("select.fichier");
+		
+		//on cache les autres options
+		var option0 = $(this).parent().find("select.prof");
+		var btn0 = $(this).parent().find("button.btnOK");
+		if ($(option0).is(":visible")) {
+			$(option0).hide();
+			$(btn0).hide();
+		} 
+		//on affiche
+		if ($(div).is(":hidden")) {
+			$(div).show();
+			$(btn).show();
+			$(lab).show();
+			$(option).show();
+		} else {
+			$(div).hide();
+			$(btn).hide();
+			$(lab).show();
+			$(option).hide();
+		}
+	});
+	
+	//*******************************verification de l'adresse email***********************//
+	function verif(email)  
+	{ 
+		var reg = /^[a-z0-9._-]+@[a-z0-9.-]{2,}[.][a-z]{2,3}$/i; 
+		var resultat = reg.test(email); 
+		return resultat; 
+	} 
+	
+	
+	//***********************************envoyer par mail*********************************************
+	$(".btnEnvoi").live('click',function(){
+		//on recupere les données de l'utilisateur
+		var typeFichier= $(this).parent().find("option#typeF:selected").html();	
+		var to= $(this).parent().find("input.mailTo").val();
+		var idPost = $(this).parents(".post ").attr("id");
+		
+		//on verifie l'adresse mail
+		var emailValide = verif(to);
+		if(emailValide == true){
+			$(this).after("&lt;img class='waitCircle' src='http://canoe-kayak.eu/G/waiting.gif' height='23' width='23' &gt;&lt;/img&gt;");
+			var waiting = $(this).parent().find('.waitCircle');
+		
+			if(typeFichier == "post"){
+				$.post("http://localhost:8080/phpbbextract/extractPostServlet", { id: idPost },function(result){
+					waiting.remove();
+					$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to});
+					alert("envoi reussi");
+				}
+				);
+			}
+			else if(typeFichier == "discussion"){
+				var urlPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
+				var nbMsg = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination").text();
+				var v = nbMsg.substring(0, nbMsg.indexOf(" m"));
+				var nbrep = v.replace(/^\s+/, "").replace(/\s+$/, "");
+				var lien = $(urlPage).attr("href");
+				$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lien, nbMsg:nbrep,direct:false},function(result){
+					waiting.remove();
+					$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to});
+					alert("envoi reussi");
+				});
+			}
+			else{
+				var nb= $(this).parent().find("option#nbP:selected").html();
+				//on recupere les numeros de page
+				var pageCourante = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:first").text();
+				var lastPage = $(gBrowser.selectedBrowser.contentWindow.document).find("div.pagination &gt; a &gt; strong:last").text();
+				$.post("http://localhost:8080/phpbbextract/extractResponsesServlet", {idPost: idPost, profondeur:nb,pageCourante:pageCourante,lastPage:lastPage}
+					,function(result){
+						waiting.remove();
+						$.post("http://localhost:8080/phpbbextract/sendMailServlet",{to:to });
+						alert("envoi reussi");
+				});
+			}
+		}
+		else{alert("l'adresse mail n'est pas valide !");}	
+	});
+	
+	//*************************enregistrer la discussion********************************************
+	$(".saveDiscussion").live('click',function(){
+		$(this).after("&lt;img class='waitCircle' src='http://canoe-kayak.eu/G/waiting.gif' height='23' width='23' &gt;&lt;/img&gt;");
+        var waiting = $(this).parent().find('.waitCircle');
+     
+		var lienDiscussion = $(this).parent("dt").find("a.topictitle").attr("href");
+		var textnbrep = $(this).parents("dl").find("dd.posts").text();
+		var nbrep = textnbrep.substring(0, textnbrep.indexOf(" R"));
+		$.post("http://localhost:8080/phpbbextract/extractDiscussion",{page: lienDiscussion, nbMsg:nbrep,direct:true}, function(result){
+			waiting.remove();
+			window.open('http://localhost:8080/phpbbextract/extractPageServlet','sauvegarder discussion','');
+		});
+	});
+	
+
+			//-----------chargement du contenu html de la page dans la servlet--------------//
+	function sendPageCourante(){
+		var codeHtml = $(gBrowser.selectedBrowser.contentWindow.document).find("div#page-body &gt; h2 &gt; a");
+		var lien = $(codeHtml).attr("href");
+		$.post("http://localhost:8080/phpbbextract/extractPageServlet", { page: lien });
+	}
+
+	
+	$("body").live('dblclick',function(){
+			//----vérifie si on est bien sur phpBB
+			if($(gBrowser.selectedBrowser.contentWindow.document).find("title:contains('phpBB-fr.com')").text() != ""){
+				sendPageCourante();
+				
+				//creation des boutons sur l'index des discussions
+				if($(gBrowser.selectedBrowser.contentWindow.document).find(".saveDiscussion").length == 0){
+					var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("li.row &gt; dl &gt; dt &gt; a.topictitle");
+					for(var i=0; i &lt; doc.length; i++)
+					{
+						var post = $(doc).eq(i);
+						$(post).after("&lt;button class='saveDiscussion' &gt;Save discussion&lt;/button&gt;");
+					}	
+				}
+				
+				//creation des boutons dans une discusion
+				//----vérifie si les boutons ont déjà été créé
+				if($(gBrowser.selectedBrowser.contentWindow.document).find(".btnEnr2").length == 0){
+					var doc = $(gBrowser.selectedBrowser.contentWindow.document).find("div.postbody &gt; h3 &gt; a");
+					for(var i=0; i &lt; doc.length; i++)
+					{
+						var post = $(doc).eq(i);
+						var numID = $(post).parents(".post ").attr("id");
+						//pour l'envoi d'un mail
+						$(post).after("&lt;button class='btnEnvoi' style='display:none; &gt;Envoyer&lt;/button&gt;");
+						$(post).after("&lt;select class='fichier' style='display:none;' name='listeF'&gt; &lt;option id='typeF' value='post'&gt;post&lt;option id='typeF' value='discussion'&gt;discussion&lt;option id='typeF' value='reponses'&gt;reponses&lt;/select&gt; ");
+						$(post).after("&lt;input class='mailTo' type='text' size='15' style='display:none;' value='to@fai.com' &gt; &lt;/input&gt; ");
+						
+						//pour le choix de la profondeur des reponses
+						$(post).after("&lt;button class='btnOK' style='display:none; &gt;Save&lt;/button&gt;");
+						$(post).after("&lt;select class='prof' style='display:none;' name='liste'&gt; &lt;option id='nbP' value='1'&gt;1&lt;option id='nbP' value='2'&gt;2&lt;option id='nbP' value='3'&gt;3&lt;option id='nbP' value='4'&gt;4&lt;/select&gt; ");
+						
+						//boutons generaux
+						$(post).after("&lt;button class='btnEnr3' id='"+ numID+"' &gt;Mail&lt;/button&gt;");
+						$(post).after("&lt;button class='btnEnr2' id='"+ numID+"' &gt;Reponses&lt;/button&gt;");						
+						$(post).after("&lt;button class='btnEnr' id='"+ numID+"' &gt;Post&lt;/button&gt;");
+					}	
+				}
+			}
+		});
+
+	</xul:script>
+
+	
+</xul:window>

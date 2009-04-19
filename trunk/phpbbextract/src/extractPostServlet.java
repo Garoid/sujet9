@@ -34,6 +34,9 @@ public class extractPostServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String directoryPath = this.getServletContext().getRealPath("/fichierXML");
+		Utils.setDirectoryPath(directoryPath);
+		
 		try {
 			Post lePost = Utils.recupererPost(request.getParameter("id"));
 			Utils.creerPostXML(lePost);

@@ -29,11 +29,10 @@ public class extractPageServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//envoi le fichier à sauvegarder grace au window.open() chez le client
-		System.out.println(this.getServletContext().getContextPath());
-		System.out.println(this.getServletContext().getServerInfo());
-		InputStream is= new FileInputStream("d:/eclipse/save.xml");
+		String directoryPath = this.getServletContext().getRealPath("/fichierXML");
+		InputStream is= new FileInputStream(directoryPath+"\\saveFile.xml");
         OutputStream os = response.getOutputStream();
-        response.setHeader("Content-Disposition","attachment;filename=save.xml");
+        response.setHeader("Content-Disposition","attachment;filename=saveFile.xml");
         int count;
         byte buf[] = new byte[4096];
         while ((count = is.read(buf)) > -1)

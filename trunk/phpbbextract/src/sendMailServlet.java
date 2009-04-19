@@ -35,7 +35,6 @@ public class sendMailServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
     	String to = request.getParameter("to");
-    	System.out.println(to);
 		Utils.envoyerMailSMTP(to);
 
 	}

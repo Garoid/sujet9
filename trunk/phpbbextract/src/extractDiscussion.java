@@ -35,10 +35,13 @@ public class extractDiscussion extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
+			
 			Utils.setPage(request.getParameter("page"));
 			int nbMsg = Integer.parseInt(request.getParameter("nbMsg"));
 			String direct = request.getParameter("direct");
 			Utils.recupererDiscussion(nbMsg, direct);
+			String directoryPath = this.getServletContext().getRealPath("/fichierXML");
+			Utils.setDirectoryPath(directoryPath);
 			Utils.creerPostsXML(Utils.getListePost());
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
