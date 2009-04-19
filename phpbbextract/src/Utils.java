@@ -46,9 +46,9 @@ public class Utils {
 	
 	private static String page;
 	private static ArrayList<Post> listePost = new ArrayList<Post>();
-	
-	
-
+	private static int profondeur;
+	private static String directoryPath;
+	  
 	public Utils() {
 		// TODO Auto-generated constructor stub
 	}
@@ -73,6 +73,25 @@ public class Utils {
 	public static void setListePost(ArrayList<Post> listePost) {
 		Utils.listePost = listePost;
 	}
+	  
+    public static int getProfondeur() {
+		return profondeur;
+	}
+
+	public static void setProfondeur(int profondeur) {
+		Utils.profondeur = profondeur;
+	}
+	
+	public static String getDirectoryPath() {
+		return directoryPath;
+	}
+
+	public static void setDirectoryPath(String directoryPath) {
+		Utils.directoryPath = directoryPath;
+	}
+
+
+
 	
 	/**
 	 * permet de recuperer un post en fonction de son id
@@ -98,7 +117,6 @@ public class Utils {
 		//titre
 		Node noeud = parser.parse(titreH3).elementAt(0);
 		String titre = noeud.getChildren().elementAt(0).toPlainTextString();
-		System.out.println("Titre :"+titre);
 		
 		parser.reset();
 		
@@ -107,15 +125,11 @@ public class Utils {
 		String auteur =noeud.toPlainTextString().substring(3, noeud.toPlainTextString().indexOf("&raquo;"));
 		String date =	noeud.toPlainTextString().substring(noeud.toPlainTextString().indexOf("&raquo;")+7, noeud.toPlainTextString().length());
 		
-		System.out.println("Auteur :"+auteur);
-		System.out.println("Date :"+date);
-		
 		parser.reset();
 		
 		//message
 		noeud = parser.parse(content).elementAt(0);
 		String message = noeud.toPlainTextString();
-		System.out.println("message"+message);
 		
 		//creation d'un objet post
 		Post p = new Post(idSearch,titre,auteur,date,message);
@@ -169,8 +183,6 @@ public class Utils {
 			
 			titreP = noeud.getChildren().elementAt(0).toPlainTextString();
 			result +=titreP;
-			System.out.println("Titre :"+titreP);
-			
 			parser.reset();
 			
 			//auteur et date
@@ -178,8 +190,6 @@ public class Utils {
 			noeud = ListPost.elementAt(i);
 			auteurP =noeud.toPlainTextString().substring(3, noeud.toPlainTextString().indexOf("&raquo;"));
 			dateP =noeud.toPlainTextString().substring(noeud.toPlainTextString().indexOf("&raquo;")+7, noeud.toPlainTextString().length());
-			System.out.println("Auteur :"+auteurP);
-			System.out.println("Date :"+dateP);
 			
 			parser.reset();
 			
@@ -188,8 +198,6 @@ public class Utils {
 			noeud = ListPost.elementAt(i);
 			messageP = noeud.toPlainTextString();
 			result+=messageP;
-			System.out.println("message : "+messageP);
-			System.out.println("==========================================");
 			
 			//creation du post et ajout dans la liste
 			postCourant = new Post(idP,titreP,auteurP,dateP,messageP);
@@ -228,6 +236,8 @@ public class Utils {
 				//on garde l'adresse sans l'extension
 				adresseBegin = lienAdressCourante.substring(0,iFin);
 			}
+			String url1 = adresseBegin+".html";
+			Utils.setPage(url1);
 		}	
 		else{
 			Parser parser = new Parser(Utils.getPage());
@@ -251,6 +261,7 @@ public class Utils {
 		int nbCourant =0;
 			
 		//recuperation premiere page
+		
 		Utils.recupererPosts();
 	
 		//pour chaque page, on construit l'url et on recupere les posts de la page
@@ -273,7 +284,7 @@ public class Utils {
 	 */
 	public static void creerPostXML(Post postSave) throws XMLStreamException, IOException{
 		XMLOutputFactory out = XMLOutputFactory.newInstance();
-		FileOutputStream output = new FileOutputStream("save.xml");
+		FileOutputStream output = new FileOutputStream(getDirectoryPath()+"/saveFile.xml");
 		XMLStreamWriter xmlsw = out.createXMLStreamWriter(output,"UTF-8");
 		xmlsw.writeStartDocument();
 			xmlsw.writeStartElement("POSTS");
@@ -307,7 +318,7 @@ public class Utils {
 	 */
 	public static void creerPostsXML(ArrayList<Post> liste) throws XMLStreamException, IOException{
 		XMLOutputFactory out = XMLOutputFactory.newInstance();
-		FileOutputStream output = new FileOutputStream("save.xml");
+		FileOutputStream output = new FileOutputStream(getDirectoryPath()+"/saveFile.xml");
 		XMLStreamWriter xmlsw = out.createXMLStreamWriter(output, "UTF-8");
 		xmlsw.writeStartDocument();
 		xmlsw.writeStartElement("POSTS");
@@ -354,7 +365,7 @@ public class Utils {
     		props.setProperty("mail.smtp.port", "587");
     		props.setProperty("mail.smtp.auth", "true");
     		props.setProperty("mail.smtp.starttls.enable", "true");
-    		String filename = "c:/Data/eclipse2/save.xml";
+    		String filename = getDirectoryPath()+"/saveFile.xml";
     		
     		Authenticator auth = new SMTPAuthenticator("phpbbsave", "phpBBadmin");
     		Session session = Session.getInstance(props, auth);
@@ -370,7 +381,7 @@ public class Utils {
     		MimeBodyPart mbp2 = new MimeBodyPart();			
     		DataSource ds = new FileDataSource(filename);
      		mbp2.setDataHandler(new DataHandler(ds));		   
-     		mbp2.setFileName("save.xml");			   
+     		mbp2.setFileName("saveFile.xml");			   
 	     	mp.addBodyPart(mbp2);
     		Transport.send(msg);
 
@@ -399,5 +410,126 @@ public class Utils {
             return authentication;
         }
     }
+    
+
+	/**
+	 * permet de chercher dans les pages restantes de la discussion les reponses a un post
+	 * @param idBegin id du message référant
+	 * @param pageBegin page sur laquelle se trouve le message
+	 * @param lastPage derniere page de la discussion
+	 * @throws ParserException
+	 * @throws UnsupportedEncodingException
+	 */
+	public static void traiterPages(String idBegin, int pageBegin, int lastPage) throws ParserException, UnsupportedEncodingException
+	{
+		//on reinitialise a liste
+		Utils.getListePost().clear();
+		
+		//System.out.println(Utils.getPage());
+		Post p = Utils.recupererPost(idBegin);
+		
+		//on recupere les pages suivantes a ce post jusqu'a la fin de la discussion
+		String lienAdressCourante = Utils.getPage();
+		recupPostsCitation(idBegin,p.getAuteur(),p.getMessage());
+		String adresseBegin = "";
+		String adresseCheck ="";int nbCourant = 0;
+		int iFin = lienAdressCourante.lastIndexOf(".html");
+		int tiret = lienAdressCourante.lastIndexOf("-");
+		if(tiret>(iFin-5)){
+			//on garde l'adresse sans l'extension
+			adresseBegin = lienAdressCourante.substring(0,tiret);
+		}
+		else{
+			//on garde l'adresse sans l'extension
+			adresseBegin = lienAdressCourante.substring(0,iFin);
+		}
+		for(int i = pageBegin ; i < lastPage ; i++)
+		{
+			nbCourant = 15*(i);
+			adresseCheck = adresseBegin+"-"+nbCourant+".html";
+			Utils.setPage(adresseCheck);
+			recupPostsCitation(idBegin,p.getAuteur(),p.getMessage());
+		}	
+	}
+	
+	/**
+	 * permet de recuperer tous les posts comportant des citations
+	 * @param idBegin l'id du post referant
+	 * @param auteur l'auteur recherché
+	 * @param msg le contenu du message recherché
+	 * @throws ParserException
+	 */
+	public static void recupPostsCitation(String idBegin,String auteur, String msg) throws ParserException
+	{
+		Parser parser = new Parser(Utils.getPage());
+		AndFilter divID = new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("id"));
+		AndFilter divClass = new AndFilter(new TagNameFilter("div"), new HasAttributeFilter("class"));
+		AndFilter divClassS = new AndFilter(new TagNameFilter("div"), new NotFilter(new HasAttributeFilter("class","signature")));
+		NodeFilter[] IdClass = new NodeFilter[3];
+		IdClass[0] = divID;
+		IdClass[1] = divClass;
+		IdClass[2] = divClassS;
+		AndFilter postIDs = new AndFilter(IdClass );
+
+		AndFilter classInner = new AndFilter(new TagNameFilter("div"),new HasParentFilter(postIDs));
+		AndFilter classPostBody = new AndFilter(new TagNameFilter("div"),new HasParentFilter(classInner));
+		AndFilter divPostbody = new AndFilter(new TagNameFilter("div"),new HasParentFilter(classPostBody));
+		AndFilter divContent = new AndFilter(new TagNameFilter("div"),new HasAttributeFilter("class", "content"));
+		NodeFilter[] postbodyContent = new NodeFilter[2];
+		postbodyContent[0] = divPostbody;
+		postbodyContent[1] = divContent;
+		AndFilter content = new AndFilter(postbodyContent);
+		AndFilter divcite = new AndFilter(new TagNameFilter("div"), new HasParentFilter(content));
+		NodeList ListPost = parser.parse(divcite);
+		String idMsgTeste;
+		
+		for(int i =0;i<ListPost.size();i++)
+		{
+			String blocContent = ListPost.elementAt(i).toHtml();
+			TagNode parent = (TagNode)ListPost.elementAt(i).getParent().getParent().getParent().getParent();
+			idMsgTeste = parent.getAttribute("id");
+			for(int j = 0; j<getProfondeur();j++){
+				String msgFinal;
+				if(blocContent.contains("<blockquote")){
+					msgFinal = blocContent.substring(blocContent.lastIndexOf("</blockquote>")+13,blocContent.length());
+					verifMsg(idMsgTeste,msgFinal, auteur, msg);
+					blocContent = blocContent.substring(blocContent.indexOf("><div>")+6,blocContent.lastIndexOf("</div></blockquote>")+19);
+				}else if(blocContent.contains("crit:")){
+					msgFinal = blocContent.substring(blocContent.indexOf(":")+1, blocContent.length());
+					verifMsg(idMsgTeste,msgFinal, auteur, msg);
+					break;
+				}else{
+					verifMsg(idMsgTeste,blocContent, auteur, msg);
+					break;
+					
+				}
+			}
+		}
+	}
+	
+	/**
+	 * permet de verifier si le message testé est bien celui recherché
+	 * @param contenuMsg le message à tester
+	 * @param auteurRecherche l'auteur recherché
+	 * @param msgRecherche le message recherché
+	 * @throws ParserException 
+	 */
+	public static void verifMsg(String id, String contenuMsg,String auteurRecherche, String msgRecherche  ) throws ParserException {
+		//on enleve toutes les balises superflus pour obtenir la chaine de caractere simple
+		contenuMsg = contenuMsg.replaceAll("<[^>]*>", "");
+		if (msgRecherche.contains(contenuMsg) && contenuMsg.length()>2) {
+			try {
+				//on cree le post 
+				Post postValide = recupererPost(id);
+				//on l'ajoute a la liste
+				getListePost().add(postValide);
+				
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} 
+		
+	}
 	
 }
